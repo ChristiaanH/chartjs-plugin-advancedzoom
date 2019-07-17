@@ -6,13 +6,13 @@ import Hammer from 'hammerjs';
 var helpers = Chart.helpers;
 
 // Take the zoom namespace of Chart
-var zoomNS = Chart.Zoom = Chart.Zoom || {};
+var AdvancedZoomNS = Chart.AdvancedZoom = Chart.AdvancedZoom || {};
 
 // Where we store functions to handle different scale types
-var zoomFunctions = zoomNS.zoomFunctions = zoomNS.zoomFunctions || {};
-var panFunctions = zoomNS.panFunctions = zoomNS.panFunctions || {};
+var zoomFunctions = AdvancedZoomNS.zoomFunctions = AdvancedZoomNS.zoomFunctions || {};
+var panFunctions = AdvancedZoomNS.panFunctions = AdvancedZoomNS.panFunctions || {};
 
-Chart.Zoom.defaults = Chart.defaults.global.plugins.zoom = {
+Chart.AdvancedZoom.defaults = Chart.defaults.global.plugins.advancedzoom = {
 	pan: {
 		enabled: false,
 		mode: 'xy',
@@ -28,31 +28,27 @@ Chart.Zoom.defaults = Chart.defaults.global.plugins.zoom = {
 };
 
 function resolveOptions(chart, options) {
-	var deprecatedOptions = {};
-	if (typeof chart.options.pan !== 'undefined') {
-		deprecatedOptions.pan = chart.options.pan;
-	}
-	if (typeof chart.options.pan !== 'undefined') {
-		deprecatedOptions.zoom = chart.options.zoom;
-	}
+	console.log("Options:");
+	console.log(options);
 	var props = chart.$zoom;
-	options = props._options = helpers.merge({}, [options, deprecatedOptions]);
+	options = props._options;
+	console.log("Props:");
+	console.log(props);
 
 	// Install listeners. Do this dynamically based on options so that we can turn zoom on and off
 	// We also want to make sure listeners aren't always on. E.g. if you're scrolling down a page
 	// and the mouse goes over a chart you don't want it intercepted unless the plugin is enabled
 	var node = props._node;
-	var zoomEnabled = options.zoom && options.zoom.enabled;
-	var dragEnabled = options.zoom.drag;
-	if (zoomEnabled && !dragEnabled) {
+	var zoomEnabled = options.plugins.advancedzoom.zoom && options.plugins.advancedzoom.zoom.enabled;
+	var dragEnabled = options.plugins.advancedzoom.zoom.drag;
+	if (zoomEnabled) {
 		node.addEventListener('wheel', props._wheelHandler);
+		if(dragEnabled) {
+			node.addEventListener('mousedown', props._mouseDownHandler);
+			node.ownerDocument.addEventListener('mouseup', props._mouseUpHandler);
+		}
 	} else {
 		node.removeEventListener('wheel', props._wheelHandler);
-	}
-	if (zoomEnabled && dragEnabled) {
-		node.addEventListener('mousedown', props._mouseDownHandler);
-		node.ownerDocument.addEventListener('mouseup', props._mouseUpHandler);
-	} else {
 		node.removeEventListener('mousedown', props._mouseDownHandler);
 		node.removeEventListener('mousemove', props._mouseMoveHandler);
 		node.ownerDocument.removeEventListener('mouseup', props._mouseUpHandler);
@@ -114,10 +110,10 @@ function zoomCategoryScale(scale, zoom, center, zoomOptions) {
 	var chartCenter = scale.isHorizontal() ? scale.left + (scale.width / 2) : scale.top + (scale.height / 2);
 	var centerPointer = scale.isHorizontal() ? center.x : center.y;
 
-	zoomNS.zoomCumulativeDelta = zoom > 1 ? zoomNS.zoomCumulativeDelta + 1 : zoomNS.zoomCumulativeDelta - 1;
+	AdvancedZoomNS.zoomCumulativeDelta = zoom > 1 ? AdvancedZoomNS.zoomCumulativeDelta + 1 : AdvancedZoomNS.zoomCumulativeDelta - 1;
 
-	if (Math.abs(zoomNS.zoomCumulativeDelta) > sensitivity) {
-		if (zoomNS.zoomCumulativeDelta < 0) {
+	if (Math.abs(AdvancedZoomNS.zoomCumulativeDelta) > sensitivity) {
+		if (AdvancedZoomNS.zoomCumulativeDelta < 0) {
 			if (centerPointer >= chartCenter) {
 				if (minIndex <= 0) {
 					maxIndex = Math.min(lastLabelIndex, maxIndex + 1);
@@ -131,14 +127,14 @@ function zoomCategoryScale(scale, zoom, center, zoomOptions) {
 					maxIndex = Math.min(lastLabelIndex, maxIndex + 1);
 				}
 			}
-			zoomNS.zoomCumulativeDelta = 0;
-		} else if (zoomNS.zoomCumulativeDelta > 0) {
+			AdvancedZoomNS.zoomCumulativeDelta = 0;
+		} else if (AdvancedZoomNS.zoomCumulativeDelta > 0) {
 			if (centerPointer >= chartCenter) {
 				minIndex = minIndex < maxIndex ? minIndex = Math.min(maxIndex, minIndex + 1) : minIndex;
 			} else if (centerPointer < chartCenter) {
 				maxIndex = maxIndex > minIndex ? maxIndex = Math.max(minIndex, maxIndex - 1) : maxIndex;
 			}
-			zoomNS.zoomCumulativeDelta = 0;
+			AdvancedZoomNS.zoomCumulativeDelta = 0;
 		}
 		scale.options.ticks.min = rangeMinLimiter(zoomOptions, labels[minIndex]);
 		scale.options.ticks.max = rangeMaxLimiter(zoomOptions, labels[maxIndex]);
@@ -190,7 +186,7 @@ function doZoom(chart, percentZoomX, percentZoomY, focalPoint, whichAxes) {
 		};
 	}
 
-	var zoomOptions = chart.$zoom._options.zoom;
+	var zoomOptions = chart.$zoom._options.plugins.advancedzoom.zoom;
 
 	if (zoomOptions.enabled) {
 		storeOriginalOptions(chart);
@@ -235,10 +231,10 @@ function panCategoryScale(scale, delta, panOptions) {
 	var step = Math.round(scale.width / (offsetAmt * panSpeed));
 	var maxIndex;
 
-	zoomNS.panCumulativeDelta += delta;
+	AdvancedZoomNS.panCumulativeDelta += delta;
 
-	minIndex = zoomNS.panCumulativeDelta > step ? Math.max(0, minIndex - 1) : zoomNS.panCumulativeDelta < -step ? Math.min(lastLabelIndex - offsetAmt + 1, minIndex + 1) : minIndex;
-	zoomNS.panCumulativeDelta = minIndex !== scale.minIndex ? 0 : zoomNS.panCumulativeDelta;
+	minIndex = AdvancedZoomNS.panCumulativeDelta > step ? Math.max(0, minIndex - 1) : AdvancedZoomNS.panCumulativeDelta < -step ? Math.min(lastLabelIndex - offsetAmt + 1, minIndex + 1) : minIndex;
+	AdvancedZoomNS.panCumulativeDelta = minIndex !== scale.minIndex ? 0 : AdvancedZoomNS.panCumulativeDelta;
 
 	maxIndex = Math.min(lastLabelIndex, minIndex + offsetAmt - 1);
 
@@ -299,7 +295,7 @@ function panScale(scale, delta, panOptions) {
 
 function doPan(chartInstance, deltaX, deltaY) {
 	storeOriginalOptions(chartInstance);
-	var panOptions = chartInstance.$zoom._options.pan;
+	var panOptions = chartInstance.$zoom._options.plugins.advancedzoom.pan;
 	if (panOptions.enabled) {
 		var panMode = panOptions.mode;
 
@@ -346,23 +342,24 @@ function getYAxis(chartInstance) {
 }
 
 // Store these for later
-zoomNS.zoomFunctions.category = zoomCategoryScale;
-zoomNS.zoomFunctions.time = zoomTimeScale;
-zoomNS.zoomFunctions.linear = zoomNumericalScale;
-zoomNS.zoomFunctions.logarithmic = zoomNumericalScale;
-zoomNS.panFunctions.category = panCategoryScale;
-zoomNS.panFunctions.time = panTimeScale;
-zoomNS.panFunctions.linear = panNumericalScale;
-zoomNS.panFunctions.logarithmic = panNumericalScale;
+AdvancedZoomNS.zoomFunctions.category = zoomCategoryScale;
+AdvancedZoomNS.zoomFunctions.time = zoomTimeScale;
+AdvancedZoomNS.zoomFunctions.linear = zoomNumericalScale;
+AdvancedZoomNS.zoomFunctions.logarithmic = zoomNumericalScale;
+AdvancedZoomNS.panFunctions.category = panCategoryScale;
+AdvancedZoomNS.panFunctions.time = panTimeScale;
+AdvancedZoomNS.panFunctions.linear = panNumericalScale;
+AdvancedZoomNS.panFunctions.logarithmic = panNumericalScale;
 // Globals for category pan and zoom
-zoomNS.panCumulativeDelta = 0;
-zoomNS.zoomCumulativeDelta = 0;
+AdvancedZoomNS.panCumulativeDelta = 0;
+AdvancedZoomNS.zoomCumulativeDelta = 0;
 
 // Chartjs Zoom Plugin
-var zoomPlugin = {
-	id: 'zoom',
+var advancedZoomPlugin = {
+	id: 'advancedzoom',
 
 	afterInit: function(chartInstance) {
+		console.log("Zoomplugin after init!");
 
 		chartInstance.resetZoom = function() {
 			storeOriginalOptions(chartInstance);
@@ -409,6 +406,8 @@ var zoomPlugin = {
 	},
 
 	beforeInit: function(chartInstance, pluginOptions) {
+		console.log("advancedZoom beforeInit");
+
 		chartInstance.$zoom = {
 			_originalOptions: {}
 		};
@@ -421,13 +420,17 @@ var zoomPlugin = {
 		chartInstance.$zoom._mouseDownHandler = function(event) {
 			node.addEventListener('mousemove', chartInstance.$zoom._mouseMoveHandler);
 			chartInstance.$zoom._dragZoomStart = event;
+			event.preventDefault();
 		};
 
 		chartInstance.$zoom._mouseMoveHandler = function(event) {
-			if (chartInstance.$zoom._dragZoomStart) {
+			if(event.buton == 2) {
+				doPan(chartInstance, event.movementX, event.movementY);
+			} else if (chartInstance.$zoom._dragZoomStart) {
 				chartInstance.$zoom._dragZoomEnd = event;
 				chartInstance.update(0);
 			}
+
 		};
 
 		chartInstance.$zoom._mouseUpHandler = function(event) {
@@ -558,7 +561,7 @@ var zoomPlugin = {
 			mc.on('pinchend', function(e) {
 				handlePinch(e);
 				currentPinchScaling = null; // reset
-				zoomNS.zoomCumulativeDelta = 0;
+				AdvancedZoomNS.zoomCumulativeDelta = 0;
 			});
 
 			var currentDeltaX = null;
@@ -584,7 +587,7 @@ var zoomPlugin = {
 			mc.on('panend', function() {
 				currentDeltaX = null;
 				currentDeltaY = null;
-				zoomNS.panCumulativeDelta = 0;
+				AdvancedZoomNS.panCumulativeDelta = 0;
 				setTimeout(function() {
 					panning = false;
 				}, 500);
@@ -678,5 +681,6 @@ var zoomPlugin = {
 	}
 };
 
-Chart.plugins.register(zoomPlugin);
-export default zoomPlugin;
+console.log("advancedzoom included!");
+Chart.plugins.register(advancedZoomPlugin);
+export default advancedZoomPlugin;

@@ -21,9 +21,9 @@ deploy:
   - provider: releases
     api_key: $GITHUB_AUTH_TOKEN
     file:
-      - "./dist/chartjs-plugin-zoom.js"
-      - "./dist/chartjs-plugin-zoom.min.js"
-      - "./dist/chartjs-plugin-zoom.zip"
+      - "./dist/chartjs-plugin-advancedzoom.js"
+      - "./dist/chartjs-plugin-advancedzoom.min.js"
+      - "./dist/chartjs-plugin-advancedzoom.zip"
     skip_cleanup: true
     on:
       tags: true
