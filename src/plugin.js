@@ -20,8 +20,8 @@ Chart.AdvancedZoom.defaults = Chart.defaults.global.plugins.advancedzoom = {
 		threshold: 10
 	},
 	zoom: {
-		enabled: false,
-		mode: 'xy',
+		enabled: true,
+		mode: 'x', 
 		sensitivity: 3,
 		speed: 0.1
 	}
@@ -30,10 +30,11 @@ Chart.AdvancedZoom.defaults = Chart.defaults.global.plugins.advancedzoom = {
 function resolveOptions(chart, options) {
 	console.log("Options:");
 	console.log(options);
-	var props = chart.$zoom;
+	var props = chart.$advancedzoom;
 	options = props._options;
 	console.log("Props:");
 	console.log(props);
+
 
 	// Install listeners. Do this dynamically based on options so that we can turn zoom on and off
 	// We also want to make sure listeners aren't always on. E.g. if you're scrolling down a page
@@ -41,6 +42,7 @@ function resolveOptions(chart, options) {
 	var node = props._node;
 	var zoomEnabled = options.plugins.advancedzoom.zoom && options.plugins.advancedzoom.zoom.enabled;
 	var dragEnabled = options.plugins.advancedzoom.zoom.drag;
+	zoomEnabled = true;
 	if (zoomEnabled) {
 		node.addEventListener('wheel', props._wheelHandler);
 		if(dragEnabled) {
@@ -56,7 +58,7 @@ function resolveOptions(chart, options) {
 }
 
 function storeOriginalOptions(chart) {
-	var originalOptions = chart.$zoom._originalOptions;
+	var originalOptions = chart.$advancedzoom._originalOptions;
 	helpers.each(chart.scales, function(scale) {
 		if (!originalOptions[scale.id]) {
 			originalOptions[scale.id] = helpers.clone(scale.options);
@@ -186,7 +188,7 @@ function doZoom(chart, percentZoomX, percentZoomY, focalPoint, whichAxes) {
 		};
 	}
 
-	var zoomOptions = chart.$zoom._options.plugins.advancedzoom.zoom;
+	var zoomOptions = chart.$advancedzoom._options.plugins.advancedzoom.zoom;
 
 	if (zoomOptions.enabled) {
 		storeOriginalOptions(chart);
@@ -295,7 +297,7 @@ function panScale(scale, delta, panOptions) {
 
 function doPan(chartInstance, deltaX, deltaY) {
 	storeOriginalOptions(chartInstance);
-	var panOptions = chartInstance.$zoom._options.plugins.advancedzoom.pan;
+	var panOptions = chartInstance.$advancedzoom._options.plugins.advancedzoom.pan;
 	if (panOptions.enabled) {
 		var panMode = panOptions.mode;
 
@@ -359,11 +361,11 @@ var advancedZoomPlugin = {
 	id: 'advancedzoom',
 
 	afterInit: function(chartInstance) {
-		console.log("Zoomplugin after init!");
+		console.log("AdvancedZoom::afterInit");
 
 		chartInstance.resetZoom = function() {
 			storeOriginalOptions(chartInstance);
-			var originalOptions = chartInstance.$zoom._originalOptions;
+			var originalOptions = chartInstance.$advancedzoom._originalOptions;
 			helpers.each(chartInstance.scales, function(scale) {
 
 				var timeOptions = scale.options.time;
@@ -402,45 +404,46 @@ var advancedZoomPlugin = {
 	},
 
 	beforeUpdate: function(chart, options) {
+		console.log("AdvancedZoom::beforeUpdate");
 		resolveOptions(chart, options);
 	},
 
-	beforeInit: function(chartInstance, pluginOptions) {
-		console.log("advancedZoom beforeInit");
+	beforeInit: function(chartInstance) {
+		console.log("AdvancedZoom::beforeInit");
 
-		chartInstance.$zoom = {
+		chartInstance.$advancedzoom = {
 			_originalOptions: {}
 		};
-		var node = chartInstance.$zoom._node = chartInstance.chart.ctx.canvas;
+		var node = chartInstance.$advancedzoom._node = chartInstance.chart.ctx.canvas;
 		resolveOptions(chartInstance, pluginOptions);
 
-		var options = chartInstance.$zoom._options;
+		var options = chartInstance.$advancedzoom._options;
 		var panThreshold = options.pan && options.pan.threshold;
 
-		chartInstance.$zoom._mouseDownHandler = function(event) {
-			node.addEventListener('mousemove', chartInstance.$zoom._mouseMoveHandler);
-			chartInstance.$zoom._dragZoomStart = event;
+		chartInstance.$advancedzoom._mouseDownHandler = function(event) {
+			node.addEventListener('mousemove', chartInstance.$advancedzoom._mouseMoveHandler);
+			chartInstance.$advancedzoom._dragZoomStart = event;
 			event.preventDefault();
 		};
 
-		chartInstance.$zoom._mouseMoveHandler = function(event) {
+		chartInstance.$advancedzoom._mouseMoveHandler = function(event) {
 			if(event.buton == 2) {
 				doPan(chartInstance, event.movementX, event.movementY);
-			} else if (chartInstance.$zoom._dragZoomStart) {
-				chartInstance.$zoom._dragZoomEnd = event;
+			} else if (chartInstance.$advancedzoom._dragZoomStart) {
+				chartInstance.$advancedzoom._dragZoomEnd = event;
 				chartInstance.update(0);
 			}
 
 		};
 
-		chartInstance.$zoom._mouseUpHandler = function(event) {
-			if (!chartInstance.$zoom._dragZoomStart) {
+		chartInstance.$advancedzoom._mouseUpHandler = function(event) {
+			if (!chartInstance.$advancedzoom._dragZoomStart) {
 				return;
 			}
 
-			node.removeEventListener('mousemove', chartInstance.$zoom._mouseMoveHandler);
+			node.removeEventListener('mousemove', chartInstance.$advancedzoom._mouseMoveHandler);
 
-			var beginPoint = chartInstance.$zoom._dragZoomStart;
+			var beginPoint = chartInstance.$advancedzoom._dragZoomStart;
 
 			var offsetX = beginPoint.target.getBoundingClientRect().left;
 			var startX = Math.min(beginPoint.clientX, event.clientX) - offsetX;
@@ -454,8 +457,8 @@ var advancedZoomPlugin = {
 			var dragDistanceY = endY - startY;
 
 			// Remove drag start and end before chart update to stop drawing selected area
-			chartInstance.$zoom._dragZoomStart = null;
-			chartInstance.$zoom._dragZoomEnd = null;
+			chartInstance.$advancedzoom._dragZoomStart = null;
+			chartInstance.$advancedzoom._dragZoomEnd = null;
 
 			if (dragDistanceX <= 0 && dragDistanceY <= 0) {
 				return;
@@ -463,7 +466,7 @@ var advancedZoomPlugin = {
 
 			var chartArea = chartInstance.chartArea;
 
-			var zoomOptions = chartInstance.$zoom._options.zoom;
+			var zoomOptions = chartInstance.$advancedzoom._options.zoom;
 			var chartDistanceX = chartArea.right - chartArea.left;
 			var xEnabled = directionEnabled(zoomOptions.mode, 'x');
 			var zoomX = xEnabled && dragDistanceX ? 1 + ((chartDistanceX - dragDistanceX) / chartDistanceX) : 1;
@@ -483,7 +486,7 @@ var advancedZoomPlugin = {
 		};
 
 		var _scrollTimeout = null;
-		chartInstance.$zoom._wheelHandler = function(event) {
+		chartInstance.$advancedzoom._wheelHandler = function(event) {
 			var rect = event.target.getBoundingClientRect();
 			var offsetX = event.clientX - rect.left;
 			var offsetY = event.clientY - rect.top;
@@ -493,7 +496,7 @@ var advancedZoomPlugin = {
 				y: offsetY
 			};
 
-			var zoomOptions = chartInstance.$zoom._options.zoom;
+			var zoomOptions = chartInstance.$advancedzoom._options.zoom;
 			var speedPercent = zoomOptions.speed;
 
 			if (event.deltaY >= 0) {
@@ -592,45 +595,46 @@ var advancedZoomPlugin = {
 					panning = false;
 				}, 500);
 
-				var panOptions = chartInstance.$zoom._options.pan;
+				var panOptions = chartInstance.$advancedzoom._options.pan;
 				if (typeof panOptions.onPanComplete === 'function') {
 					panOptions.onPanComplete({chart: chartInstance});
 				}
 			});
 
-			chartInstance.$zoom._ghostClickHandler = function(e) {
+			chartInstance.$advancedzoom._ghostClickHandler = function(e) {
 				if (panning && e.cancelable) {
 					e.stopImmediatePropagation();
 					e.preventDefault();
 				}
 			};
-			node.addEventListener('click', chartInstance.$zoom._ghostClickHandler);
+			node.addEventListener('click', chartInstance.$advancedzoom._ghostClickHandler);
 
 			chartInstance._mc = mc;
 		}
 	},
 
 	beforeDatasetsDraw: function(chartInstance) {
+		console.log("AdvancedZoom::beforeDatasetsDraw");
 		var ctx = chartInstance.chart.ctx;
 
-		if (chartInstance.$zoom._dragZoomEnd) {
+		if (chartInstance.$advancedzoom._dragZoomEnd) {
 			var xAxis = getXAxis(chartInstance);
 			var yAxis = getYAxis(chartInstance);
-			var beginPoint = chartInstance.$zoom._dragZoomStart;
-			var endPoint = chartInstance.$zoom._dragZoomEnd;
+			var beginPoint = chartInstance.$advancedzoom._dragZoomStart;
+			var endPoint = chartInstance.$advancedzoom._dragZoomEnd;
 
 			var startX = xAxis.left;
 			var endX = xAxis.right;
 			var startY = yAxis.top;
 			var endY = yAxis.bottom;
 
-			if (directionEnabled(chartInstance.$zoom._options.zoom.mode, 'x')) {
+			if (directionEnabled(chartInstance.$advancedzoom._options.zoom.mode, 'x')) {
 				var offsetX = beginPoint.target.getBoundingClientRect().left;
 				startX = Math.min(beginPoint.clientX, endPoint.clientX) - offsetX;
 				endX = Math.max(beginPoint.clientX, endPoint.clientX) - offsetX;
 			}
 
-			if (directionEnabled(chartInstance.$zoom._options.zoom.mode, 'y')) {
+			if (directionEnabled(chartInstance.$advancedzoom._options.zoom.mode, 'y')) {
 				var offsetY = beginPoint.target.getBoundingClientRect().top;
 				startY = Math.min(beginPoint.clientY, endPoint.clientY) - offsetY;
 				endY = Math.max(beginPoint.clientY, endPoint.clientY) - offsetY;
@@ -638,7 +642,7 @@ var advancedZoomPlugin = {
 
 			var rectWidth = endX - startX;
 			var rectHeight = endY - startY;
-			var dragOptions = chartInstance.$zoom._options.zoom.drag;
+			var dragOptions = chartInstance.$advancedzoom._options.zoom.drag;
 
 			ctx.save();
 			ctx.beginPath();
@@ -655,10 +659,11 @@ var advancedZoomPlugin = {
 	},
 
 	destroy: function(chartInstance) {
-		if (!chartInstance.$zoom) {
+		console.log("AdvancedZoom::destroy");
+		if (!chartInstance.$advancedzoom) {
 			return;
 		}
-		var props = chartInstance.$zoom;
+		var props = chartInstance.$advancedzoom;
 		var node = props._node;
 
 		node.removeEventListener('mousedown', props._mouseDownHandler);
@@ -667,7 +672,7 @@ var advancedZoomPlugin = {
 		node.removeEventListener('wheel', props._wheelHandler);
 		node.removeEventListener('click', props._ghostClickHandler);
 
-		delete chartInstance.$zoom;
+		delete chartInstance.$advancedzoom;
 
 		var mc = chartInstance._mc;
 		if (mc) {
@@ -681,6 +686,5 @@ var advancedZoomPlugin = {
 	}
 };
 
-console.log("advancedzoom included!");
 Chart.plugins.register(advancedZoomPlugin);
 export default advancedZoomPlugin;
