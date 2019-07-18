@@ -1,6 +1,6 @@
 'use strict';
 
-import Chart from 'chart.js';
+//import Chart from 'chart.js';
 import Hammer from 'hammerjs';
 
 var helpers = Chart.helpers;
@@ -28,21 +28,19 @@ Chart.AdvancedZoom.defaults = Chart.defaults.global.plugins.advancedzoom = {
 };
 
 function resolveOptions(chart, options) {
-	console.log("Options:");
-	console.log(options);
-	var props = chart.$advancedzoom;
-	options = props._options;
-	console.log("Props:");
-	console.log(props);
-
-
 	// Install listeners. Do this dynamically based on options so that we can turn zoom on and off
 	// We also want to make sure listeners aren't always on. E.g. if you're scrolling down a page
 	// and the mouse goes over a chart you don't want it intercepted unless the plugin is enabled
-	var node = props._node;
-	var zoomEnabled = options.plugins.advancedzoom.zoom && options.plugins.advancedzoom.zoom.enabled;
-	var dragEnabled = options.plugins.advancedzoom.zoom.drag;
-	zoomEnabled = true;
+	var node = chart.$advancedzoom._node = chart.ctx.canvas;
+	var props = chart.$advancedzoom;
+
+	chart.$advancedzoom._options = options;
+	console.log("options:");
+	console.log(options);
+
+	var zoomEnabled = options.zoom && options.zoom.enabled;
+	var dragEnabled = options.zoom.drag;
+
 	if (zoomEnabled) {
 		node.addEventListener('wheel', props._wheelHandler);
 		if(dragEnabled) {
@@ -188,7 +186,7 @@ function doZoom(chart, percentZoomX, percentZoomY, focalPoint, whichAxes) {
 		};
 	}
 
-	var zoomOptions = chart.$advancedzoom._options.plugins.advancedzoom.zoom;
+	var zoomOptions = chart.$advancedzoom._options.zoom;
 
 	if (zoomOptions.enabled) {
 		storeOriginalOptions(chart);
@@ -297,7 +295,9 @@ function panScale(scale, delta, panOptions) {
 
 function doPan(chartInstance, deltaX, deltaY) {
 	storeOriginalOptions(chartInstance);
-	var panOptions = chartInstance.$advancedzoom._options.plugins.advancedzoom.pan;
+	console.log("chartInstance.$advancedzoom._options.pan");
+	console.log(chartInstance.$advancedzoom._options.pan);
+	var panOptions = chartInstance.$advancedzoom._options.pan;
 	if (panOptions.enabled) {
 		var panMode = panOptions.mode;
 
@@ -361,8 +361,6 @@ var advancedZoomPlugin = {
 	id: 'advancedzoom',
 
 	afterInit: function(chartInstance) {
-		console.log("AdvancedZoom::afterInit");
-
 		chartInstance.resetZoom = function() {
 			storeOriginalOptions(chartInstance);
 			var originalOptions = chartInstance.$advancedzoom._originalOptions;
@@ -404,20 +402,17 @@ var advancedZoomPlugin = {
 	},
 
 	beforeUpdate: function(chart, options) {
-		console.log("AdvancedZoom::beforeUpdate");
 		resolveOptions(chart, options);
 	},
 
-	beforeInit: function(chartInstance) {
-		console.log("AdvancedZoom::beforeInit");
-
+	beforeInit: function(chartInstance, options) {
 		chartInstance.$advancedzoom = {
 			_originalOptions: {}
 		};
-		var node = chartInstance.$advancedzoom._node = chartInstance.chart.ctx.canvas;
-		resolveOptions(chartInstance, pluginOptions);
+		var node = chartInstance.$advancedzoom._node = chartInstance.ctx.canvas;
+		resolveOptions(chartInstance, options);
+		chartInstance.$advancedzoom._options = options;
 
-		var options = chartInstance.$advancedzoom._options;
 		var panThreshold = options.pan && options.pan.threshold;
 
 		chartInstance.$advancedzoom._mouseDownHandler = function(event) {
@@ -427,7 +422,7 @@ var advancedZoomPlugin = {
 		};
 
 		chartInstance.$advancedzoom._mouseMoveHandler = function(event) {
-			if(event.buton == 2) {
+			if(event.button == 2) {
 				doPan(chartInstance, event.movementX, event.movementY);
 			} else if (chartInstance.$advancedzoom._dragZoomStart) {
 				chartInstance.$advancedzoom._dragZoomEnd = event;
@@ -614,8 +609,7 @@ var advancedZoomPlugin = {
 	},
 
 	beforeDatasetsDraw: function(chartInstance) {
-		console.log("AdvancedZoom::beforeDatasetsDraw");
-		var ctx = chartInstance.chart.ctx;
+		var ctx = chartInstance.ctx;
 
 		if (chartInstance.$advancedzoom._dragZoomEnd) {
 			var xAxis = getXAxis(chartInstance);
@@ -659,12 +653,11 @@ var advancedZoomPlugin = {
 	},
 
 	destroy: function(chartInstance) {
-		console.log("AdvancedZoom::destroy");
 		if (!chartInstance.$advancedzoom) {
 			return;
 		}
 		var props = chartInstance.$advancedzoom;
-		var node = props._node;
+		var node = Chart.node;
 
 		node.removeEventListener('mousedown', props._mouseDownHandler);
 		node.removeEventListener('mousemove', props._mouseMoveHandler);
@@ -685,6 +678,5 @@ var advancedZoomPlugin = {
 		}
 	}
 };
-
 Chart.plugins.register(advancedZoomPlugin);
 export default advancedZoomPlugin;
