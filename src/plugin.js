@@ -35,8 +35,6 @@ function resolveOptions(chart, options) {
 	var props = chart.$advancedzoom;
 
 	chart.$advancedzoom._options = options;
-	console.log("options:");
-	console.log(options);
 
 	var zoomEnabled = options.zoom && options.zoom.enabled;
 	var dragEnabled = options.zoom.drag;
@@ -416,13 +414,16 @@ var advancedZoomPlugin = {
 		var panThreshold = options.pan && options.pan.threshold;
 
 		chartInstance.$advancedzoom._mouseDownHandler = function(event) {
+			if(event.button == 2) {
+				chartInstance.$advancedzoom.panning = true;
+			}
 			node.addEventListener('mousemove', chartInstance.$advancedzoom._mouseMoveHandler);
 			chartInstance.$advancedzoom._dragZoomStart = event;
 			event.preventDefault();
 		};
 
 		chartInstance.$advancedzoom._mouseMoveHandler = function(event) {
-			if(event.button == 2) {
+			if(chartInstance.$advancedzoom.panning == true) {
 				doPan(chartInstance, event.movementX, event.movementY);
 			} else if (chartInstance.$advancedzoom._dragZoomStart) {
 				chartInstance.$advancedzoom._dragZoomEnd = event;
@@ -437,6 +438,12 @@ var advancedZoomPlugin = {
 			}
 
 			node.removeEventListener('mousemove', chartInstance.$advancedzoom._mouseMoveHandler);
+
+			if(event.button == 2) {
+				chartInstance.$advancedzoom.panning = false;
+				event.preventDefault();
+				return;
+			}
 
 			var beginPoint = chartInstance.$advancedzoom._dragZoomStart;
 
