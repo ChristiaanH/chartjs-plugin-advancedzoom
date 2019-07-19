@@ -293,8 +293,6 @@ function panScale(scale, delta, panOptions) {
 
 function doPan(chartInstance, deltaX, deltaY) {
 	storeOriginalOptions(chartInstance);
-	console.log("chartInstance.$advancedzoom._options.pan");
-	console.log(chartInstance.$advancedzoom._options.pan);
 	var panOptions = chartInstance.$advancedzoom._options.pan;
 	if (panOptions.enabled) {
 		var panMode = panOptions.mode;
@@ -414,16 +412,18 @@ var advancedZoomPlugin = {
 		var panThreshold = options.pan && options.pan.threshold;
 
 		chartInstance.$advancedzoom._mouseDownHandler = function(event) {
-			if(event.button == 2) {
-				chartInstance.$advancedzoom.panning = true;
-			}
 			node.addEventListener('mousemove', chartInstance.$advancedzoom._mouseMoveHandler);
-			chartInstance.$advancedzoom._dragZoomStart = event;
+			if(event.button == 0) {
+				chartInstance.$advancedzoom.panning = true;
+			} else {
+				chartInstance.$advancedzoom._dragZoomStart = event;
+			}
 			event.preventDefault();
 		};
 
 		chartInstance.$advancedzoom._mouseMoveHandler = function(event) {
-			if(chartInstance.$advancedzoom.panning == true) {
+			if(chartInstance.$advancedzoom.panning) {
+				console.log("panning");
 				doPan(chartInstance, event.movementX, event.movementY);
 			} else if (chartInstance.$advancedzoom._dragZoomStart) {
 				chartInstance.$advancedzoom._dragZoomEnd = event;
@@ -433,15 +433,15 @@ var advancedZoomPlugin = {
 		};
 
 		chartInstance.$advancedzoom._mouseUpHandler = function(event) {
-			if (!chartInstance.$advancedzoom._dragZoomStart) {
+			node.removeEventListener('mousemove', chartInstance.$advancedzoom._mouseMoveHandler);
+
+			if(event.button == 0) {
+				chartInstance.$advancedzoom.panning = false;
+				event.preventDefault();
 				return;
 			}
 
-			node.removeEventListener('mousemove', chartInstance.$advancedzoom._mouseMoveHandler);
-
-			if(event.button == 2) {
-				chartInstance.$advancedzoom.panning = false;
-				event.preventDefault();
+			if (!chartInstance.$advancedzoom._dragZoomStart) {
 				return;
 			}
 
