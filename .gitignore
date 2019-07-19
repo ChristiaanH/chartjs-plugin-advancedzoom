@@ -11,6 +11,6 @@ bower_components/
 coverage/*
 
 nbproject/*
-dist/
-chartjs-plugin-advancedzoom.js
-chartjs-plugin-advancedzoom.min.js
+#dist/
+#chartjs-plugin-advancedzoom.js
+#chartjs-plugin-advancedzoom.min.js
