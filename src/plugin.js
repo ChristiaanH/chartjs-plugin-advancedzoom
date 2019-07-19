@@ -8,6 +8,8 @@ var helpers = Chart.helpers;
 // Take the zoom namespace of Chart
 var AdvancedZoomNS = Chart.AdvancedZoom = Chart.AdvancedZoom || {};
 
+const panFinger = 0;
+
 // Where we store functions to handle different scale types
 var zoomFunctions = AdvancedZoomNS.zoomFunctions = AdvancedZoomNS.zoomFunctions || {};
 var panFunctions = AdvancedZoomNS.panFunctions = AdvancedZoomNS.panFunctions || {};
@@ -413,7 +415,7 @@ var advancedZoomPlugin = {
 
 		chartInstance.$advancedzoom._mouseDownHandler = function(event) {
 			node.addEventListener('mousemove', chartInstance.$advancedzoom._mouseMoveHandler);
-			if(event.button == 0) {
+			if(event.button == panFinger) {
 				chartInstance.$advancedzoom.panning = true;
 			} else {
 				chartInstance.$advancedzoom._dragZoomStart = event;
@@ -434,7 +436,7 @@ var advancedZoomPlugin = {
 		chartInstance.$advancedzoom._mouseUpHandler = function(event) {
 			node.removeEventListener('mousemove', chartInstance.$advancedzoom._mouseMoveHandler);
 
-			if(event.button == 0) {
+			if(event.button == panFinger) {
 				chartInstance.$advancedzoom.panning = false;
 				event.preventDefault();
 				return;
