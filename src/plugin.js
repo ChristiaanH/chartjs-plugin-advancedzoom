@@ -423,7 +423,6 @@ var advancedZoomPlugin = {
 
 		chartInstance.$advancedzoom._mouseMoveHandler = function(event) {
 			if(chartInstance.$advancedzoom.panning) {
-				console.log("panning");
 				doPan(chartInstance, event.movementX, event.movementY);
 			} else if (chartInstance.$advancedzoom._dragZoomStart) {
 				chartInstance.$advancedzoom._dragZoomEnd = event;
