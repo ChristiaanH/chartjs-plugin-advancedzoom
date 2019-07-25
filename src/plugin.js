@@ -408,8 +408,9 @@ var advancedZoomPlugin = {
 			chartInstance.update();
 		};
 		chartInstance.update(0);
+
 		var center = {
-			x: (chartInstance.chartArea.right - chartInstance.chartArea.left),
+			x: 0,
 			y: (chartInstance.chartArea.bottom + chartInstance.chartArea.top) / 2 
 		};
 		

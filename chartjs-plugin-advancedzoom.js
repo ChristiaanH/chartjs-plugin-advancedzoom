@@ -421,12 +421,14 @@ var advancedZoomPlugin = {
 			chartInstance.update();
 		};
 		chartInstance.update(0);
+		console.log("chartInstance");
+		console.log(chartInstance);
 		var center = {
-			x: (chartInstance.chartArea.right - chartInstance.chartArea.left),
+			x: (0),
 			y: (chartInstance.chartArea.bottom + chartInstance.chartArea.top) / 2 
 		};
 		
-		doZoom(chartInstance, 1 + (1 - chartInstance.$advancedzoom._options.timespan), 1, center, 'x', false);
+		doZoom(chartInstance, 1 + chartInstance.$advancedzoom._options.timespan, 1, center, 'x', false);
 	},
 
 	beforeRender: function(chart, options) {
