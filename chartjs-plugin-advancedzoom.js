@@ -190,13 +190,17 @@ function zoomScale(scale, zoom, center, zoomOptions) {
  * @param {{x: number, y: number}} focalPoint The x and y coordinates of zoom focal point. The point which doesn't change while zooming. E.g. the location of the mouse cursor when "drag: false"
  * @param {string} whichAxes `xy`, 'x', or 'y'
  */
-function doZoom(chart, percentZoomX, percentZoomY, focalPoint, whichAxes) {
+function doZoom(chart, percentZoomX, percentZoomY, focalPoint, whichAxe, doUpdate) {
 	var ca = chart.chartArea;
 	if (!focalPoint) {
 		focalPoint = {
 			x: (ca.left + ca.right) / 2,
 			y: (ca.top + ca.bottom) / 2,
 		};
+	}
+
+	if(doUpdate === undefined) {
+		doUpdate = true;
 	}
 
 	var zoomOptions = chart.$advancedzoom._options.zoom;
@@ -227,7 +231,9 @@ function doZoom(chart, percentZoomX, percentZoomY, focalPoint, whichAxes) {
 			}
 		});
 
-		chart.update(0);
+		if(doUpdate) {
+			chart.update(0);
+		}
 
 		if (typeof zoomOptions.onZoom === 'function') {
 			zoomOptions.onZoom({chart: chart});
@@ -366,10 +372,15 @@ AdvancedZoomNS.panFunctions.logarithmic = panNumericalScale;
 // Globals for category pan and zoom
 AdvancedZoomNS.panCumulativeDelta = 0;
 AdvancedZoomNS.zoomCumulativeDelta = 0;
+AdvancedZoomNS.zoomPercentage;
 
 // Chartjs Zoom Plugin
 var advancedZoomPlugin = {
 	id: 'advancedzoom',
+
+	afterDatasetUpdate: function(chartInstance, options) {
+		
+	},
 
 	afterInit: function(chartInstance) {
 		chartInstance.resetZoom = function() {
@@ -409,7 +420,17 @@ var advancedZoomPlugin = {
 
 			chartInstance.update();
 		};
+		chartInstance.update(0);
+		var center = {
+			x: (chartInstance.chartArea.left),
+			y: (chartInstance.chartArea.bottom + chartInstance.chartArea.top) / 2 
+		};
+		
+		doZoom(chartInstance, 1 + (1 - chartInstance.$advancedzoom._options.timespan), 1, center, 'x', false);
+	},
 
+	beforeRender: function(chart, options) {
+		
 	},
 
 	beforeUpdate: function(chart, options) {
@@ -441,7 +462,7 @@ var advancedZoomPlugin = {
 				doPan(chartInstance, event.movementX, event.movementY);
 			} else if (chartInstance.$advancedzoom._dragZoomStart) {
 				chartInstance.$advancedzoom._dragZoomEnd = event;
-				chartInstance.update(0);
+				//chartInstance.update(0);
 			}
 
 		};
@@ -699,6 +720,7 @@ var advancedZoomPlugin = {
 		}
 	}
 };
+
 Chart.plugins.register(advancedZoomPlugin);
 
 return advancedZoomPlugin;
