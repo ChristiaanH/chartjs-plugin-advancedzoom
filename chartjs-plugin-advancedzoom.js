@@ -422,7 +422,7 @@ var advancedZoomPlugin = {
 		};
 		chartInstance.update(0);
 		var center = {
-			x: (chartInstance.chartArea.left),
+			x: (chartInstance.chartArea.right - chartInstance.chartArea.left),
 			y: (chartInstance.chartArea.bottom + chartInstance.chartArea.top) / 2 
 		};
 		
@@ -464,7 +464,6 @@ var advancedZoomPlugin = {
 				chartInstance.$advancedzoom._dragZoomEnd = event;
 				//chartInstance.update(0);
 			}
-
 		};
 
 		chartInstance.$advancedzoom._mouseUpHandler = function(event) {

@@ -409,11 +409,11 @@ var advancedZoomPlugin = {
 		};
 		chartInstance.update(0);
 		var center = {
-			x: (chartInstance.chartArea.left),
+			x: (chartInstance.chartArea.right - chartInstance.chartArea.left),
 			y: (chartInstance.chartArea.bottom + chartInstance.chartArea.top) / 2 
 		};
 		
-		doZoom(chartInstance, 1 + (1 - chartInstance.$advancedzoom._options.timespan), 1, center, 'x', false);
+		doZoom(chartInstance, 1 + chartInstance.$advancedzoom._options.timespan, 1, center, 'x', false);
 	},
 
 	beforeRender: function(chart, options) {
@@ -451,7 +451,6 @@ var advancedZoomPlugin = {
 				chartInstance.$advancedzoom._dragZoomEnd = event;
 				//chartInstance.update(0);
 			}
-
 		};
 
 		chartInstance.$advancedzoom._mouseUpHandler = function(event) {
