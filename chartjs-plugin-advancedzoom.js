@@ -190,7 +190,7 @@ function zoomScale(scale, zoom, center, zoomOptions) {
  * @param {{x: number, y: number}} focalPoint The x and y coordinates of zoom focal point. The point which doesn't change while zooming. E.g. the location of the mouse cursor when "drag: false"
  * @param {string} whichAxes `xy`, 'x', or 'y'
  */
-function doZoom(chart, percentZoomX, percentZoomY, focalPoint, whichAxe, doUpdate) {
+function doZoom(chart, percentZoomX, percentZoomY, focalPoint, whichAxes, doUpdate) {
 	var ca = chart.chartArea;
 	if (!focalPoint) {
 		focalPoint = {
@@ -421,10 +421,9 @@ var advancedZoomPlugin = {
 			chartInstance.update();
 		};
 		chartInstance.update(0);
-		console.log("chartInstance");
-		console.log(chartInstance);
+
 		var center = {
-			x: (0),
+			x: 0,
 			y: (chartInstance.chartArea.bottom + chartInstance.chartArea.top) / 2 
 		};
 		
