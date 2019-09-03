@@ -414,6 +414,7 @@ var advancedZoomPlugin = {
 			y: (chartInstance.chartArea.bottom + chartInstance.chartArea.top) / 2 
 		};
 		
+		console.log("timespan: ", chartInstance.$advancedzoom._options.timespan);
 		doZoom(chartInstance, 1 + chartInstance.$advancedzoom._options.timespan, 1, center, 'x', false);
 	},
 
