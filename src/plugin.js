@@ -409,12 +409,13 @@ var advancedZoomPlugin = {
 		};
 		chartInstance.update(0);
 
+		var timeSpanZoom = 1 + chartInstance.$advancedzoom._options.timespan;
+
 		var center = {
-			x: 0,
+			x: (chartInstance.chartArea.right / (timeSpanZoom*timeSpanZoom)) + (chartInstance.chartArea.left),
 			y: (chartInstance.chartArea.bottom + chartInstance.chartArea.top) / 2 
 		};
 		
-		console.log("timespan: ", chartInstance.$advancedzoom._options.timespan);
 		doZoom(chartInstance, 1 + chartInstance.$advancedzoom._options.timespan, 1, center, 'x', false);
 	},
 
