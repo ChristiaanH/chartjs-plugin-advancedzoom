@@ -171,9 +171,6 @@ function zoomNumericalScale(scale, zoom, center, zoomOptions) {
 
 function zoomTimeScale(scale, zoom, center, zoomOptions) {
 	zoomNumericalScale(scale, zoom, center, zoomOptions);
-
-	scale.options.time.min = scale.options.ticks.min;
-	scale.options.time.max = scale.options.ticks.max;
 }
 
 function zoomScale(scale, zoom, center, zoomOptions) {
@@ -299,10 +296,6 @@ function panNumericalScale(scale, delta, panOptions) {
 
 function panTimeScale(scale, delta, panOptions) {
 	panNumericalScale(scale, delta, panOptions);
-
-	var options = scale.options;
-	options.time.min = options.ticks.min;
-	options.time.max = options.ticks.max;
 }
 
 function panScale(scale, delta, panOptions) {
@@ -392,18 +385,9 @@ var advancedZoomPlugin = {
 				var tickOptions = scale.options.ticks;
 
 				if (originalOptions[scale.id]) {
-
-					if (timeOptions) {
-						timeOptions.min = originalOptions[scale.id].time.min;
-						timeOptions.max = originalOptions[scale.id].time.max;
-					}
-
-					if (tickOptions) {
-						tickOptions.min = originalOptions[scale.id].ticks.min;
-						tickOptions.max = originalOptions[scale.id].ticks.max;
-					}
+					tickOptions.min = originalOptions[scale.id].ticks.min;
+					tickOptions.max = originalOptions[scale.id].ticks.max;
 				} else {
-
 					if (timeOptions) {
 						delete timeOptions.min;
 						delete timeOptions.max;
@@ -414,8 +398,6 @@ var advancedZoomPlugin = {
 						delete tickOptions.max;
 					}
 				}
-
-
 			});
 
 			chartInstance.update();
