@@ -4,6 +4,10 @@
 import Hammer from 'hammerjs';
 
 var helpers = Chart.helpers;
+helpers.calcStepValue = function(steps, val) {
+	const ms = 1000 * 60 * steps.stepValue; // convert minutes to ms
+	return Math.round(val / ms) * ms;
+}
 
 // Take the zoom namespace of Chart
 var AdvancedZoomNS = Chart.AdvancedZoom = Chart.AdvancedZoom || {};
@@ -19,7 +23,12 @@ Chart.AdvancedZoom.defaults = Chart.defaults.global.plugins.advancedzoom = {
 		enabled: false,
 		mode: 'xy',
 		speed: 20,
-		threshold: 10
+		threshold: 10,
+		steps: {
+			enabled: false,
+			stepValue: 5,
+			stepFunction: helpers.calcStepValue
+		}
 	},
 	zoom: {
 		enabled: true,
@@ -251,6 +260,39 @@ function panNumericalScale(scale, delta, panOptions) {
 	var prevEnd = scale.max;
 	var newMin = scale.getValueForPixel(scale.getPixelForValue(prevStart) - delta);
 	var newMax = scale.getValueForPixel(scale.getPixelForValue(prevEnd) - delta);
+
+	if (!helpers.isNullOrUndef(panOptions.steps) && !helpers.isNullOrUndef(panOptions.steps.enabled) && panOptions.steps.enabled)
+	{
+		if (!helpers.isNullOrUndef(panOptions.steps.stepFunction))
+		{
+			if(newMin.toDate)
+			{
+				newMin = panOptions.steps.stepFunction(panOptions.steps, newMin.toDate().getTime());
+			}
+			else if (newMin.getTime)
+			{
+				newMin = panOptions.steps.stepFunction(panOptions.steps, newMin.getTime());
+			}
+			else if (typeof newMin === 'number')
+			{
+				newMin = panOptions.steps.stepFunction(panOptions.steps, newMin);
+			}
+
+			if(newMax.toDate)
+			{
+				newMax = panOptions.steps.stepFunction(panOptions.steps, newMax.toDate().getTime());
+			}
+			else if (newMax.getTime)
+			{
+				newMax = panOptions.steps.stepFunction(panOptions.steps, newMax.getTime());
+			}
+			else if (typeof newMax === 'number')
+			{
+				newMax = panOptions.steps.stepFunction(panOptions.steps, newMax);
+			}
+		}
+	}
+
 	// The time scale returns date objects so convert to numbers. Can remove at Chart.js v3
 	newMin = newMin.valueOf ? newMin.valueOf() : newMin;
 	newMax = newMax.valueOf ? newMax.valueOf() : newMax;
